@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/eclipseagency/readme-cards/actions/workflows/ci.yml/badge.svg)](https://github.com/eclipseagency/readme-cards/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)
+![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Zero dependencies](https://img.shields.io/badge/dependencies-0-success)
 
 ---
