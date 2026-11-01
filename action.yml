@@ -1,0 +1,75 @@
+name: readme-cards
+description: >-
+  Generate GitHub profile stat cards as SVGs committed to your own repository.
+  Works with private repositories and cannot break when a third-party card
+  service goes down.
+branding:
+  icon: bar-chart-2
+  color: orange
+
+inputs:
+  token:
+    description: >-
+      Token used to read the profile. The default GITHUB_TOKEN only sees public
+      repositories; pass a PAT with the `repo` scope to include private ones in
+      the language card.
+    default: ${{ github.token }}
+  user:
+    description: GitHub login to render. Defaults to the repository owner.
+    default: ${{ github.repository_owner }}
+  cards:
+    description: "Comma separated: stats, languages, activity"
+    default: stats,languages,activity
+  theme:
+    description: "dark, light, gruvbox, dracula, nord or midnight"
+    default: dark
+  accent:
+    description: Hex accent colour override, e.g. "#f59e0b"
+    default: ""
+  output_dir:
+    description: Directory the SVGs are written to
+    default: cards
+  exclude_languages:
+    description: Languages to drop from the language card
+    default: HTML,CSS
+  badge:
+    description: Also write contributions.json, a shields.io endpoint badge
+    default: "true"
+  commit:
+    description: Commit and push the regenerated cards
+    default: "true"
+  commit_message:
+    description: Commit message used when cards change
+    default: "chore: refresh profile cards [skip ci]"
+
+runs:
+  using: composite
+  steps:
+    - name: Generate cards
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        python3 "${{ github.action_path }}/bin/readme-cards" \
+          --user "${{ inputs.user }}" \
+          --cards "${{ inputs.cards }}" \
+          --theme "${{ inputs.theme }}" \
+          --accent "${{ inputs.accent }}" \
+          --out "${{ inputs.output_dir }}" \
+          --exclude-languages "${{ inputs.exclude_languages }}" \
+          ${{ inputs.badge == 'true' && '--badge' || '' }}
+
+    - name: Commit cards
+      if: inputs.commit == 'true'
+      shell: bash
+      run: |
+        git config user.name  "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add "${{ inputs.output_dir }}"
+        if git diff --quiet --cached; then
+          echo "cards unchanged"
+          exit 0
+        fi
+        git commit -m "${{ inputs.commit_message }}"
+        git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+        git push origin "HEAD:${GITHUB_REF_NAME}"

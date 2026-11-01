@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - run: python -m unittest discover tests -v
+      - name: CLI runs without a token and fails cleanly
+        run: |
+          set +e
+          out=$(python3 ./bin/readme-cards --user octocat 2>&1); code=$?
+          set -e
+          echo "$out"
+          [ "$code" = "2" ] || { echo "expected exit 2, got $code"; exit 1; }
+          echo "$out" | grep -q "GITHUB_TOKEN" || { echo "expected a token hint"; exit 1; }

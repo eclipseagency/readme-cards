@@ -1,0 +1,21 @@
+name: Refresh examples
+
+on:
+  schedule: [{ cron: "0 4 * * *" }]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          user: eclipseagency
+          output_dir: examples
+          theme: dark
+          accent: "#f59e0b"
+          commit_message: "chore: refresh example cards [skip ci]"
