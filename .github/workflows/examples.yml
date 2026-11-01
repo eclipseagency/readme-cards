@@ -1,5 +1,10 @@
 name: Refresh examples
 
+# The README's example cards must show the full picture, including private
+# repositories. The default GITHUB_TOKEN only sees public ones and would
+# rewrite them as "4 repositories, 224 kB", which misrepresents the tool.
+# So this only runs when a PAT is configured; without one the committed
+# examples stay as generated.
 on:
   schedule: [{ cron: "0 4 * * *" }]
   workflow_dispatch:
@@ -12,8 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check for a token that can see private repositories
+        id: gate
+        env:
+          CARDS_TOKEN: ${{ secrets.CARDS_TOKEN }}
+        run: |
+          if [ -n "$CARDS_TOKEN" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else echo "ok=false" >> "$GITHUB_OUTPUT"
+               echo "::notice::CARDS_TOKEN not set; leaving the committed examples alone."
+          fi
       - uses: ./
+        if: steps.gate.outputs.ok == 'true'
         with:
+          token: ${{ secrets.CARDS_TOKEN }}
           user: eclipseagency
           output_dir: examples
           theme: dark
